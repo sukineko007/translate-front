@@ -5,7 +5,7 @@
     v-loading="loadingTranslate"
     element-loading-text="正在翻译中..."
     element-loading-spinner="el-icon-loading"
-    element-loading-background="rgba(0, 0, 0, 0.8)"
+    element-loading-background="rgba(0,0,0,0.6)"
   >
     <div class="choose">
       <el-tabs
@@ -155,7 +155,7 @@
         v-loading="loading"
         :element-loading-text="loadtext"
         element-loading-spinner="el-icon-loading"
-        element-loading-background="rgba(0, 0, 0, 0.8)"
+        element-loading-background="rgba(0,0,0,0.8)"
       >
         <div class="header">
           <el-upload
@@ -336,15 +336,15 @@ export default {
         },
         {
           id: "zh",
-          value: "中文",
+          value: "中文（简体）",
+        },
+        {
+          id: "cht",
+          value: "中文（繁体）",
         },
         {
           id: "en",
           value: "英语",
-        },
-        {
-          id: "cht",
-          value: "繁体中文",
         },
         {
           id: "yue",
@@ -541,6 +541,13 @@ export default {
         this.$message.error("请输入待翻译文本");
         return;
       }
+      //记录所选语言
+      var inputLanguageObj = {
+        originalLanguage: this.key,
+        translateLanguage: this.key2,
+      };
+      var languageData = JSON.stringify(inputLanguageObj);
+      localStorage.setItem("inputLanguage", languageData);
       var inputData = this.inputText;
       if (typeof inputData == "string") {
         var that = this;
@@ -606,6 +613,12 @@ export default {
         if (textItem == "") {
           textItem = "hello";
         }
+        if (textItem === " ") {
+          textItem = "hello";
+        }
+        if (!textItem.replace(/^\s+|\s+$/g, "")) {
+          textItem = "hello";
+        }
         var currentText = text + "\n" + textItem;
         if (currentText.length < 1000) {
           if (!text) {
@@ -624,6 +637,7 @@ export default {
         }
       }
       if (textArray.length === 0) {
+        //console.log('待翻译数据拼接：', text);
         this.q = text;
         this.translateReq();
         var resJson = [];
@@ -687,7 +701,7 @@ export default {
             console.log(err);
           });
       } else {
-        console.log("拆分翻译,共" + textArray.length + "组", textArray);
+        console.log("数据超长拆分翻译,共" + textArray.length + "组:", textArray);
         this.batchTranslateChild(
           0,
           textArray.length,
@@ -994,7 +1008,7 @@ export default {
           }
         } else {
           textArray.push(currentText);
-          this.$message.error('资源内容超长，复制资源内容使用功能1翻译');
+          this.$message.error("资源内容超长，复制资源内容使用功能1翻译");
           return;
         }
       }
@@ -1282,25 +1296,21 @@ export default {
     handleClick(tab, event) {
       Object.assign(this.$data, this.$options.data());
       console.log(tab, event);
+      var inputLanguageData = localStorage.getItem("inputLanguage");
+      if (inputLanguageData != undefined) {
+        try {
+          var inputLanguage = JSON.parse(inputLanguageData);
+          var lan1 = inputLanguage.originalLanguage;
+          var lan2 = inputLanguage.translateLanguage;
+          this.key = lan1;
+          this.key2 = lan2;
+        } catch {}
+      }
       if (tab.index == "0" || tab.index == "1" || tab.index == "2") {
         this.inputSelf = true;
       }
       if (tab.index == "3") {
         this.inputSelf = false;
-      }
-      if (tab.index == "4") {
-        this.isNotFunc5 = false;
-      }
-      if (tab.index == "5") {
-        this.inputSelf = false;
-        this.isNotFunc5 = false;
-        this.isFunc6 = true;
-      }
-      if (tab.index == "6") {
-        this.inputSelf = false;
-        this.isNotFunc5 = false;
-        this.isFunc6 = false;
-        this.isFunc7 = true;
       }
     },
     beforeChangeTab(activeName, oldActiveName, tab) {
@@ -1411,6 +1421,16 @@ export default {
     },
   },
   mounted() {
+    var inputLanguageData = localStorage.getItem("inputLanguage");
+    if (inputLanguageData != undefined) {
+      try {
+        var inputLanguage = JSON.parse(inputLanguageData);
+        var lan1 = inputLanguage.originalLanguage;
+        var lan2 = inputLanguage.translateLanguage;
+        this.key = lan1;
+        this.key2 = lan2;
+      } catch {}
+    }
     var that = this;
     var winHeight = window.innerHeight;
     var doc = document.getElementById("translateMainDiv");
